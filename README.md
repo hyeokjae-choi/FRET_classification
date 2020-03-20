@@ -1,1 +1,1 @@
-# fret_classification
+# FRET
