@@ -101,3 +101,20 @@ class PLMain(pl.LightningModule):
     @pl.data_loader
     def test_dataloader(self):
         return self.dataloader["test"]
+
+
+def load_checkpoint(net, opt, path="./checkpoint.pth"):
+    """ Load previous pre-trained checkpoint.
+    :param net:  Network instance.
+    :param opt:  Optimizer instance.
+    :param path: Path of checkpoint file.
+    :return:     Checkpoint epoch number.
+    """
+    if osp.isfile(path):
+        print("=> Loading checkpoint {}...".format(path))
+        checkpoint = torch.load(path)
+        net.load_state_dict(checkpoint["net"])
+        opt.load_state_dict(checkpoint["opt"])
+        return checkpoint["epoch"]
+    else:
+        raise ValueError("=> No checkpoint found at {}.".format(path))
