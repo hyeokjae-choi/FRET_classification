@@ -1,5 +1,9 @@
+import os.path as osp
 import argparse
 import inspect
+
+from pytorch_lightning import Trainer
+from pytorch_lightning.logging import TensorBoardLogger
 
 from torch.utils import data as torch_data
 from torch import optim
@@ -43,6 +47,8 @@ def get_args():
     parser.add_argument("--train_log_freq", type=int, default=100)
     parser.add_argument("--val_log_freq_epoch", type=int, default=5)
 
+    parser.add_argument("--log_dir", type=str)
+
     _args, network_option = parser.parse_known_args()
 
     return vars(_args), network_option
@@ -74,6 +80,7 @@ class MainLoader:
         project_name,
         train_log_freq,
         val_log_freq_epoch,
+        test_dir,
         # network_option
         network_option,
     ):
@@ -87,7 +94,7 @@ class MainLoader:
         self.test_option = self.__test_intp(test_batch_size)
         self.opt_option = self.__opt_intp(loss, lr, lr_stepsize, lr_gamma, clip_grad, momentum, weight_decay)
 
-        self.log_option = self.__log_intp(project_name, train_log_freq, val_log_freq_epoch)
+        self.log_option = self.__log_intp(project_name, train_log_freq, val_log_freq_epoch, test_dir)
 
     @staticmethod
     def __hw_intp(gpu_idx, num_workers):
@@ -170,17 +177,15 @@ class MainLoader:
         }
 
     @staticmethod
-    def __log_intp(project_name, train_log_freq, val_log_freq_epoch):
+    def __log_intp(project_name, train_log_freq, val_log_freq_epoch, test_dir):
         return {
             "project_name": project_name,
             "train_log_freq": train_log_freq,
             "val_log_freq_epoch": val_log_freq_epoch,
+            "test_dir": test_dir,
         }
 
     def run(self):
-        from pytorch_lightning import Trainer
-        from pytorch_lightning.logging import TensorBoardLogger
-
         network = self.network_option["network"]
         optimizer = self.opt_option["opt"]
         dataloader = {
@@ -206,7 +211,17 @@ class MainLoader:
             log_save_interval=1,
             row_log_interval=1,
         )
-        trainer.fit(pl)
+
+        if self.log_option["log_dir"] is None:
+            # train
+            trainer.fit(pl)
+            fret_utils.main_pl.load_checkpoint(
+                network, optimizer, path=osp.join(trainer.logger.log_dir, "checkpoints", "best_val_score.model")
+            )
+        else:
+            # for only test
+            fret_utils.main_pl.load_checkpoint(network, optimizer, path=self.log_option["log_dir"])
+
         trainer.test()
 
 

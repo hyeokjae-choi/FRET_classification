@@ -2,15 +2,17 @@ import os.path as osp
 import numpy as np
 import random
 
+from .utils import TransformerModule
+
 
 class DataManager:
     def __init__(self, ds_name, phase):
         if phase not in ["train", "val", "test"]:
             raise ValueError("Invalid name of phase ({}).".format(phase))
-
         self.num_data_per_epoch = 10000
 
         self.wl, self.cy3, self.cy5 = self.read_data()
+        self.transform = TransformerModule(len(self.wl), noise_scale=0.1)
 
     def __getitem__(self, index):
         return self.load_data()
@@ -36,6 +38,10 @@ class DataManager:
         return cy3_wl, cy3_spec, cy5_spec
 
     def load_data(self):
-        t = random.random()
+        t = np.array(random.random(), dtype=np.float32)
         x = t * self.cy3 + (1 - t) * self.cy5
+
+        # transform
+        x = self.transform.run(x)
+
         return np.expand_dims(x, axis=0), np.expand_dims(t, axis=0).astype(np.float32)
