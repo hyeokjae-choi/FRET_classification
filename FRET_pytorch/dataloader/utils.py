@@ -3,8 +3,9 @@ import numpy as np
 
 
 class TransformerModule:
-    def __init__(self, x_length, noise_scale=0.1):
+    def __init__(self, x_length, operate, noise_scale=0.1):
         self.x_length = x_length
+        self.operate = operate
         self.noise_sclae = noise_scale
 
     def run(self, x):
