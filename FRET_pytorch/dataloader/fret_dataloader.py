@@ -12,7 +12,7 @@ class DataManager:
         self.num_data_per_epoch = 10000
 
         self.wl, self.cy3, self.cy5 = self.read_data()
-        self.transform = TransformerModule(len(self.wl), transform, noise_scale=0.1)
+        self.transform = TransformerModule(len(self.wl), transform, noise_scale=0.01)
 
     def __getitem__(self, index):
         return self.load_data()

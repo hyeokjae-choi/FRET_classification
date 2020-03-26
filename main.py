@@ -226,7 +226,7 @@ class MainLoader:
             # for only test
             fret_utils.main_pl.load_checkpoint(network, optimizer, path=self.log_option["test_dir"])
 
-        trainer.test()
+        trainer.test(pl)
 
 
 if __name__ == "__main__":

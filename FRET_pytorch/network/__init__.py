@@ -1,8 +1,9 @@
-from .network import STN3d, Feats_STN3d
+from .network import STN3d, Feats_STN3d, CUSTOM1
 
 network_dict = {
     "std3d": STN3d,
     "feats_stn": Feats_STN3d,
+    "custom1": CUSTOM1,
 }
 
 

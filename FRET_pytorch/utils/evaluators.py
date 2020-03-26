@@ -24,7 +24,7 @@ class RMSEEvaluator:
             self.true_list.append(true)
 
     def evaluation_end(self):
-        val_score = mean_squared_error(np.stack(self.true_list), np.stack(self.pred_list))
+        val_score = 1. - mean_squared_error(np.stack(self.true_list), np.stack(self.pred_list))
         self.pred_list = []
         self.true_list = []
 
