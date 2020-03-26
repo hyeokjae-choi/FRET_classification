@@ -1,1 +1,1 @@
-python main.py --gpu_idx 0 --ds_name cy3_5_regression --project_name baseline
+python main.py --gpu_idx 0 --ds_name cy3_5_regression --network std3d --transform --project_name baseline_noise

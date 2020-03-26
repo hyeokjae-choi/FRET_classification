@@ -28,10 +28,11 @@ def get_args():
     parser.add_argument("--num_worker", type=int, default=0)
 
     # network
-    parser.add_argument("--network", type=str, default="std3d")
+    parser.add_argument("--network", type=str)
 
     # data
     parser.add_argument("--ds_name", type=str)
+    parser.add_argument("--transform", action="store_true")
 
     # optimizer settings - current isn't supported
     parser.add_argument("--loss", type=str, default="Adam")
@@ -47,7 +48,7 @@ def get_args():
     parser.add_argument("--train_log_freq", type=int, default=100)
     parser.add_argument("--val_log_freq_epoch", type=int, default=5)
 
-    parser.add_argument("--log_dir", type=str)
+    parser.add_argument("--test_dir", type=str)
 
     _args, network_option = parser.parse_known_args()
 
@@ -68,6 +69,7 @@ class MainLoader:
         network,
         # data
         ds_name,
+        transform,
         # optimizer settings
         loss,
         lr,
@@ -85,7 +87,7 @@ class MainLoader:
         network_option,
     ):
         self.hw_option = self.__hw_intp(gpu_idx, num_worker)
-        self.data_option = {"ds_name": ds_name}
+        self.data_option = {"ds_name": ds_name, "transform": transform}
         self.network_option = self.__network_intp(network, network_option)
 
         # use hw, data, network opt
@@ -130,7 +132,9 @@ class MainLoader:
         return {"network": network, "network_option": network_option_dict}
 
     def __data_intp(self, train_batch_size, phase):
-        data = fret_dl.fret_dataloader.DataManager(ds_name=self.data_option["ds_name"], phase=phase,)
+        data = fret_dl.fret_dataloader.DataManager(
+            ds_name=self.data_option["ds_name"], transform=self.data_option["transform"], phase=phase
+        )
         dataloader = torch_data.DataLoader(
             data,
             batch_size=train_batch_size,
@@ -212,7 +216,7 @@ class MainLoader:
             row_log_interval=1,
         )
 
-        if self.log_option["log_dir"] is None:
+        if self.log_option["test_dir"] is None:
             # train
             trainer.fit(pl)
             fret_utils.main_pl.load_checkpoint(
@@ -220,7 +224,7 @@ class MainLoader:
             )
         else:
             # for only test
-            fret_utils.main_pl.load_checkpoint(network, optimizer, path=self.log_option["log_dir"])
+            fret_utils.main_pl.load_checkpoint(network, optimizer, path=self.log_option["test_dir"])
 
         trainer.test()
 
